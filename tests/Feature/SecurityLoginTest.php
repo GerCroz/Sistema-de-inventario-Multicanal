@@ -219,4 +219,48 @@ class SecurityLoginTest extends TestCase
             ->assertSee('192.168.1.100')
             ->assertSee('CRÍTICO');
     }
+
+    public function test_account_is_blocked_after_five_failures_across_multiple_ips(): void
+    {
+        for ($i = 1; $i <= 5; $i++) {
+            $this->withServerVariables(['REMOTE_ADDR' => "10.0.0.$i"])
+                ->postJson('/security-login', [
+                    'email' => 'victim@example.com',
+                    'password' => 'wrong-password',
+                ])->assertStatus(401);
+        }
+
+        $accountKey = 'security:block:account:'.hash('sha256', 'victim@example.com');
+        $this->assertTrue(Cache::has($accountKey));
+
+        $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.99'])
+            ->postJson('/security-login', [
+                'email' => 'victim@example.com',
+                'password' => 'correct-or-wrong',
+            ])->assertStatus(429);
+    }
+
+    public function test_security_dashboard_exports_csv_evidence(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+        ]);
+
+        LoginAttempt::create([
+            'identifier' => 'attacker@example.com',
+            'ip_address' => '203.0.113.50',
+            'status' => 'failed',
+            'user_agent' => 'Curl/8.0',
+            'created_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)->get('/security-dashboard/export');
+
+        $response->assertOk()
+            ->assertHeader('content-disposition', 'attachment; filename=security-evidence.csv');
+
+        $csv = $response->streamedContent();
+        $this->assertStringContainsString('attacker@example.com', $csv);
+        $this->assertStringContainsString('203.0.113.50', $csv);
+    }
 }

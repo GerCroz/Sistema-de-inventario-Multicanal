@@ -19,9 +19,11 @@ class SecurityLoginController extends Controller
         ]);
 
         $ip = $request->ip();
+        $email = mb_strtolower($data['email']);
         $key = 'security:block:'.hash('sha256', $ip);
+        $accountKey = 'security:block:account:'.hash('sha256', $email);
 
-        if (Cache::has($key)) {
+        if (Cache::has($key) || Cache::has($accountKey)) {
             $this->record($request, 'blocked');
             Log::channel('security')->warning(
                 'Intento desde IP bloqueada', ['ip' => $ip]
@@ -70,6 +72,24 @@ class SecurityLoginController extends Controller
             Log::channel('security')->alert(
                 'Posible ataque de fuerza bruta',
                 ['ip' => $ip, 'failed_attempts' => $count]
+            );
+        }
+
+        $accountCount = LoginAttempt::where('identifier', $email)
+            ->where('status', 'failed')
+            ->where('created_at', '>=', now()->subMinutes(5))
+            ->count();
+
+        if ($accountCount >= 5 && $count < 5) {
+            Cache::put($accountKey, true, now()->addMinutes(10));
+            Log::channel('security')->critical(
+                'Bloqueo temporal de cuenta por intentos fallidos',
+                [
+                    'email' => $email,
+                    'ip' => $ip,
+                    'failed_attempts' => $accountCount,
+                    'duration_minutes' => 10,
+                ]
             );
         }
 

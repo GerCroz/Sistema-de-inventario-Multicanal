@@ -19,3 +19,7 @@ Route::post('/security-login',
 Route::get('/security-dashboard',
     [SecurityDashboardController::class, 'index']
 )->middleware(['auth', 'can:viewSecurityDashboard']);
+
+Route::get('/security-dashboard/export',
+    [SecurityDashboardController::class, 'export']
+)->middleware(['auth', 'can:viewSecurityDashboard'])->name('security-dashboard.export');
