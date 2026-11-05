@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\SecurityDashboardController;
 use App\Http\Controllers\SecurityLoginController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -23,3 +24,19 @@ Route::get('/security-dashboard',
 Route::get('/security-dashboard/export',
     [SecurityDashboardController::class, 'export']
 )->middleware(['auth', 'can:viewSecurityDashboard'])->name('security-dashboard.export');
+
+Route::post('/security-logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+
+    return redirect()->route('login');
+})->middleware('auth')->name('security.logout');
+
+Route::post('/security-logout', function () {
+    Illuminate\Support\Facades\Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+
+    return redirect()->route('login');
+})->middleware('auth')->name('security.logout');

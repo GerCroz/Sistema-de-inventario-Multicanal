@@ -58,6 +58,9 @@
                     <span id="ws-indicator" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                     <span id="ws-status">Conectando a Reverb...</span>
                 </div>
+                <a href="/security-dashboard" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 transition flex items-center gap-1.5">
+                    <span>🛡️</span> Seguridad & Logs
+                </a>
                 <button onclick="cargarProductos()" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     Refrescar
