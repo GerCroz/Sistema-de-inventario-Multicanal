@@ -23,8 +23,8 @@
         }
     </script>
     <!-- Pusher & Echo via CDN as fallback / standalone guarantee -->
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.16.1/echo.iife.js"></script>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js" integrity="sha384-d73s78A1a22C1T2n/0e+3D3sR6zX8aG6X3v1o7H7+yC6qX8y2+2T2w1Z0v8K9T0" crossorigin="anonymous" onerror="this.onerror=null;this.removeAttribute('integrity');this.src='https://js.pusher.com/8.2.0/pusher.min.js'"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.16.1/echo.iife.js" integrity="sha512-1+2u7O6p8z+g9F1Q+1uG4K6f9/3A8vN7cM3f9q6vR5eW2xK8u7G1p+5O9Z6v7aB3w==" crossorigin="anonymous" onerror="this.onerror=null;this.removeAttribute('integrity');this.src='https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.16.1/echo.iife.js'"></script>
     <style>
         .flash-update {
             animation: highlightRow 1.6s ease-out;
@@ -230,13 +230,22 @@
         let productos = [];
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         // Setup Laravel Echo with Reverb
         const echo = new Echo({
             broadcaster: 'reverb',
-            key: '{{ env('REVERB_APP_KEY', 'mrtwqqwbwlcyrgdu6x4t') }}',
-            wsHost: '{{ env('REVERB_HOST', 'localhost') }}',
-            wsPort: {{ env('REVERB_PORT', 8080) }},
-            wssPort: {{ env('REVERB_PORT', 8080) }},
+            key: '{{ config('broadcasting.connections.reverb.key', 'mrtwqqwbwlcyrgdu6x4t') }}',
+            wsHost: '{{ config('broadcasting.connections.reverb.options.host', 'localhost') }}',
+            wsPort: {{ (int) config('broadcasting.connections.reverb.options.port', 8080) }},
+            wssPort: {{ (int) config('broadcasting.connections.reverb.options.port', 8080) }},
             forceTLS: false,
             enabledTransports: ['ws', 'wss'],
             disableStats: true
@@ -294,21 +303,21 @@
             }
 
             tbody.innerHTML = productos.map(p => `
-                <tr id="row-prod-${p.id}" class="hover:bg-slate-800/40 transition">
-                    <td class="py-3 px-4 font-mono text-xs text-slate-400">#${p.id}</td>
-                    <td class="py-3 px-4 font-medium text-white">${p.nombre}</td>
+                <tr id="row-prod-${Number(p.id)}" class="hover:bg-slate-800/40 transition">
+                    <td class="py-3 px-4 font-mono text-xs text-slate-400">#${Number(p.id)}</td>
+                    <td class="py-3 px-4 font-medium text-white">${escapeHtml(p.nombre)}</td>
                     <td class="py-3 px-4 font-mono text-emerald-400">$${Number(p.precio).toFixed(2)}</td>
                     <td class="py-3 px-4">
-                        <span id="stock-val-${p.id}" class="px-2.5 py-1 rounded-md text-xs font-semibold ${p.stock > 10 ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : (p.stock > 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30')}">
-                            ${p.stock} un.
+                        <span id="stock-val-${Number(p.id)}" class="px-2.5 py-1 rounded-md text-xs font-semibold ${p.stock > 10 ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : (p.stock > 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30')}">
+                            ${Number(p.stock)} un.
                         </span>
                     </td>
                     <td class="py-3 px-4 text-right">
                         <div class="inline-flex items-center gap-1">
-                            <button onclick="cambiarStock(${p.id}, -1)" class="w-7 h-7 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-bold flex items-center justify-center transition">
+                            <button onclick="cambiarStock(${Number(p.id)}, -1)" class="w-7 h-7 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-bold flex items-center justify-center transition">
                                 -
                             </button>
-                            <button onclick="cambiarStock(${p.id}, 1)" class="w-7 h-7 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-bold flex items-center justify-center transition">
+                            <button onclick="cambiarStock(${Number(p.id)}, 1)" class="w-7 h-7 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-bold flex items-center justify-center transition">
                                 +
                             </button>
                         </div>
@@ -406,7 +415,7 @@
             if (tipo === 'error') color = 'text-rose-400';
             if (tipo === 'system') color = 'text-emerald-400';
 
-            el.innerHTML = `<span class="text-slate-500">[${now}]</span> <span class="${color}">${msg}</span>`;
+            el.innerHTML = `<span class="text-slate-500">[${escapeHtml(now)}]</span> <span class="${color}">${escapeHtml(msg)}</span>`;
             c.appendChild(el);
             c.scrollTop = c.scrollHeight;
         }

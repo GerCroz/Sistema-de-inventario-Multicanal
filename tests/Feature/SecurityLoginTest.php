@@ -250,7 +250,7 @@ class SecurityLoginTest extends TestCase
             'identifier' => 'attacker@example.com',
             'ip_address' => '203.0.113.50',
             'status' => 'failed',
-            'user_agent' => 'Curl/8.0',
+            'user_agent' => '=cmd|\' /C calc\'!A0',
             'created_at' => now(),
         ]);
 
@@ -262,5 +262,6 @@ class SecurityLoginTest extends TestCase
         $csv = $response->streamedContent();
         $this->assertStringContainsString('attacker@example.com', $csv);
         $this->assertStringContainsString('203.0.113.50', $csv);
+        $this->assertStringContainsString("'=cmd|", $csv);
     }
 }

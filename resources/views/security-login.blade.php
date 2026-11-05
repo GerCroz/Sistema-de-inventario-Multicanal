@@ -181,7 +181,14 @@
                     alertBox.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
                     alertTitle.textContent = '✓ Acceso Autorizado';
                     alertStatus.textContent = 'HTTP 200';
-                    alertMessage.innerHTML = `${data.message}. Redirigiendo al <a href="/security-dashboard" class="underline font-semibold">Panel de Monitoreo</a>...`;
+                    alertMessage.innerHTML = '';
+                    alertMessage.appendChild(document.createTextNode((data.message || '') + '. Redirigiendo al '));
+                    const link = document.createElement('a');
+                    link.href = '/security-dashboard';
+                    link.className = 'underline font-semibold';
+                    link.textContent = 'Panel de Monitoreo';
+                    alertMessage.appendChild(link);
+                    alertMessage.appendChild(document.createTextNode('...'));
                     setTimeout(() => window.location.href = '/security-dashboard', 1000);
                 } else if (res.status === 429) {
                     alertBox.classList.add('bg-rose-500/10', 'border-rose-500/30', 'text-rose-300');

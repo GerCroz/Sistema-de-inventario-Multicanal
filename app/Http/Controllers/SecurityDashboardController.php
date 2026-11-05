@@ -56,10 +56,10 @@ class SecurityDashboardController extends Controller
             foreach ($events as $event) {
                 fputcsv($handle, [
                     $event->id,
-                    $event->identifier,
-                    $event->ip_address,
-                    $event->status,
-                    $event->user_agent,
+                    $this->sanitizeCsvValue($event->identifier),
+                    $this->sanitizeCsvValue($event->ip_address),
+                    $this->sanitizeCsvValue($event->status),
+                    $this->sanitizeCsvValue($event->user_agent),
                     $event->created_at,
                 ]);
             }
@@ -68,5 +68,15 @@ class SecurityDashboardController extends Controller
         }, 'security-evidence.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    private function sanitizeCsvValue(?string $value): string
+    {
+        $val = (string) $value;
+        if ($val !== '' && in_array($val[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            return "'".$val;
+        }
+
+        return $val;
     }
 }
